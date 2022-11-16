@@ -81,9 +81,9 @@ export const UserBO = () => {
     if (!/^[0-9]+$/.test(cpf))
       throw new BadRequestError("O CPF deve conter apenas números.");
 
-    const newPassword = bcrypt.hash(password, 9);
+    const newPassword = await bcrypt.hash(password, 9);
     const user: CreateUserResponse = await userDAO.create({
-      data: { ...userData, password: await newPassword },
+      data: { ...userData, password: newPassword },
     });
     delete user.password;
     return user;
