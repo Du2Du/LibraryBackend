@@ -120,12 +120,28 @@ export const UserBO = () => {
       process.env.TOKEN_SECRET ?? ""
     );
 
-    if (!tokenValidate) throw new UnauthorizedError("Cookie não válido.");
+    if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
     const userId = returnIdWithCookie(refreshToken);
     const accessToken = createToken(userId);
     setCookie(res, "accessToken", accessToken);
     res.send("Token atualizado com sucesso.");
   };
 
-  return { createUser, userLogin, refreshToken };
+  const me = async (req: FastifyRequest, res: FastifyReply) => {
+    const accessToken = req.cookies.accessToken;
+    if (!accessToken) throw new UnauthorizedError("Usuário não autorizado.");
+
+    const validateToken = jwt.verify(
+      accessToken,
+      process.env.TOKEN_SECRET ?? ""
+    );
+    if (!validateToken) throw new UnauthorizedError("Token inválido.");
+
+    const userId = returnIdWithCookie(accessToken);
+    const user: CreateUserResponse | null = await findUserById(userId);
+    delete user?.password;
+    return user;
+  };
+
+  return { createUser, userLogin, refreshToken, me };
 };
