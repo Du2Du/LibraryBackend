@@ -55,7 +55,7 @@ export const UserBO = () => {
     res.setCookie(cookieName, cookieValue);
   };
 
-  const returnIdWithCookie = (cookie: string) => {
+  const returnIdFromCookie = (cookie: string) => {
     const token = jwt.decode(cookie);
     if (typeof token === "string" || token === null)
       throw new BadRequestError("Ocorreu um erro.");
@@ -121,7 +121,7 @@ export const UserBO = () => {
     );
 
     if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
-    const userId = returnIdWithCookie(refreshToken);
+    const userId = returnIdFromCookie(refreshToken);
     const accessToken = createToken(userId);
     setCookie(res, "accessToken", accessToken);
     res.send("Token atualizado com sucesso.");
@@ -137,7 +137,7 @@ export const UserBO = () => {
     );
     if (!validateToken) throw new UnauthorizedError("Token inválido.");
 
-    const userId = returnIdWithCookie(accessToken);
+    const userId = returnIdFromCookie(accessToken);
     const user: CreateUserResponse | null = await findUserById(userId);
     delete user?.password;
     return user;
