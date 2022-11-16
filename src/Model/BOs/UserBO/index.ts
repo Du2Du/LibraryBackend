@@ -17,8 +17,7 @@ export const UserBO = () => {
         email,
       },
     });
-    if (existsUserEmail) return true;
-    return false;
+    return existsUserEmail;
   };
 
   const verifyUserByCpf = async (cpf: string) => {
@@ -27,8 +26,26 @@ export const UserBO = () => {
         cpf,
       },
     });
-    if (existsUserCpf) return true;
-    return false;
+    return existsUserCpf;
+  };
+
+  const createAccessToken = (email: string) => {
+    const token = jwt.sign(
+      { foo: "bar", email },
+      process.env.TOKEN_SECRET ?? "",
+      { algorithm: "ES512", expiresIn: "5h" }
+    );
+
+    return token;
+  };
+
+  const createRefreshToken = (email: string) => {
+    const refreshToken = jwt.sign(
+      { foo: "bar", email },
+      process.env.TOKEN_SECRET ?? "",
+      { algorithm: "ES512", expiresIn: "90 days" }
+    );
+    return refreshToken;
   };
 
   const createUser = async (req: FastifyRequest, res: FastifyReply) => {
@@ -50,13 +67,11 @@ export const UserBO = () => {
       throw new BadRequestError("O CPF deve conter apenas números.");
 
     const newPassword = bcrypt.hash(password, 9);
-    const user = await userDAO.create({
+    const user: CreateUserResponse = await userDAO.create({
       data: { ...userData, password: await newPassword },
     });
-
-    const newUser: CreateUserResponse = user;
-    delete newUser.password;
-    return newUser;
+    delete user.password;
+    return user;
   };
 
   const userLogin = async (req: FastifyRequest, res: FastifyReply) => {
@@ -67,9 +82,19 @@ export const UserBO = () => {
 
     const userData = userSchema.parse(req.body);
     const { email } = userData;
+    const user = await verifyUserByEmail(email);
 
-    if (!verifyUserByEmail(email))
-      throw new NotFoundError("Usuário não encontrado.");
+    if (!user) throw new NotFoundError("Usuário não encontrado.");
+
+    const accessToken = createAccessToken(email);
+    const refreshToken = createRefreshToken(email);
+
+    req.headers["authorization"] = "Bearer " + accessToken;
+
+    console.log("----------------");
+    console.log(accessToken);
+
+    return;
   };
 
   return { createUser, userLogin };
