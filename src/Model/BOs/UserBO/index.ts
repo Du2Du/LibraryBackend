@@ -3,6 +3,7 @@ import {
   BadRequestError,
   ConflictError,
   NotFoundError,
+  UnauthorizedError,
 } from "http-errors-enhanced";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -29,22 +30,20 @@ export const UserBO = () => {
     return existsUserCpf;
   };
 
-  const createAccessToken = (email: string) => {
-    const token = jwt.sign(
-      { foo: "bar", email },
-      process.env.TOKEN_SECRET ?? "",
-      { algorithm: "ES512", expiresIn: "5h" }
-    );
+  const createToken = (id: number, isAccessToken = true) => {
+    const token = jwt.sign({ id }, process.env.TOKEN_SECRET ?? "", {
+      algorithm: "HS512",
+      expiresIn: isAccessToken ? "5h" : "90 days",
+    });
     return token;
   };
 
-  const createRefreshToken = (email: string) => {
-    const refreshToken = jwt.sign(
-      { foo: "bar", email },
-      process.env.TOKEN_SECRET ?? "",
-      { algorithm: "ES512", expiresIn: "90 days" }
-    );
-    return refreshToken;
+  const setCookie = (
+    res: FastifyReply,
+    cookieName: string,
+    cookieValue: string
+  ) => {
+    res.setCookie(cookieName, cookieValue);
   };
 
   const createUser = async (req: FastifyRequest, res: FastifyReply) => {
@@ -81,18 +80,18 @@ export const UserBO = () => {
 
     const userData = userSchema.parse(req.body);
     const { email } = userData;
-    if (!(await verifyUserByEmail(email)))
-      throw new NotFoundError("Usuário não encontrado.");
+    const userLogged = await verifyUserByEmail(email);
+    if (!userLogged?.id) throw new NotFoundError("Usuário não encontrado.");
 
-    const accessToken = createAccessToken(email);
-    const refreshToken = createRefreshToken(email);
-    req.headers["authorization"] = "Bearer " + accessToken;
-    res.setCookie("accessToken", accessToken);
-    res.setCookie("refreshToken", refreshToken);
-    console.log("----------------");
-    console.log(accessToken);
+    const { id, password } = userLogged;
+    const passwordVerify = await bcrypt.compare(userData.password, password);
+    if (!passwordVerify) throw new UnauthorizedError("Senha inválida.");
 
-    return;
+    const accessToken = createToken(id);
+    const refreshToken = createToken(id, false);
+    setCookie(res, "accessToken", accessToken);
+    setCookie(res, "refreshToken", refreshToken);
+    res.send("Usuário logado com sucesso!");
   };
 
   return { createUser, userLogin };
