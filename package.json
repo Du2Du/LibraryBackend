@@ -11,15 +11,19 @@
   "dependencies": {
     "@fastify/cors": "^8.2.0",
     "@prisma/client": "^4.6.1",
+    "bcrypt": "^5.1.0",
     "dotenv": "^16.0.3",
     "fastify": "^4.9.2",
     "http-errors-enhanced": "^1.0.12",
+    "jsonwebtoken": "^8.5.1",
     "pg": "^8.8.0",
     "zod": "^3.19.1"
   },
   "devDependencies": {
     "@fastify/env": "^4.1.0",
     "@mermaid-js/mermaid-cli": "^9.1.7",
+    "@types/bcrypt": "^5.0.0",
+    "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^18.11.9",
     "@types/pg": "^8.6.5",
     "prisma": "^4.6.1",

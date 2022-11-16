@@ -1,7 +1,14 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { BadRequestError, ConflictError } from "http-errors-enhanced";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "http-errors-enhanced";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { z } from "zod";
 import { userDAO } from "../../DAOs";
+import { CreateUserProps, CreateUserResponse } from "../../../Types";
 
 export const UserBO = () => {
   const verifyUserByEmail = async (email: string) => {
@@ -33,7 +40,7 @@ export const UserBO = () => {
     });
 
     const userData = userSchema.parse(req.body);
-    const { email, cpf } = userData;
+    const { email, cpf, password } = userData;
 
     if (await verifyUserByEmail(email))
       throw new ConflictError("Usuário com email já cadastrado!");
@@ -42,14 +49,28 @@ export const UserBO = () => {
     if (!/^[0-9]+$/.test(cpf))
       throw new BadRequestError("O CPF deve conter apenas números.");
 
+    const newPassword = bcrypt.hash(password, 9);
     const user = await userDAO.create({
-      data: userData,
+      data: { ...userData, password: await newPassword },
     });
 
-    return user;
+    const newUser: CreateUserResponse = user;
+    delete newUser.password;
+    return newUser;
   };
 
-  const userLogin = async (req: FastifyRequest, res: FastifyReply) => {};
+  const userLogin = async (req: FastifyRequest, res: FastifyReply) => {
+    const userSchema = z.object({
+      email: z.string().email(),
+      password: z.string().min(6),
+    });
+
+    const userData = userSchema.parse(req.body);
+    const { email } = userData;
+
+    if (!verifyUserByEmail(email))
+      throw new NotFoundError("Usuário não encontrado.");
+  };
 
   return { createUser, userLogin };
 };

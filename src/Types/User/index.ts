@@ -7,3 +7,6 @@ export interface UserProps {
 }
 
 export interface CreateUserProps extends Omit<UserProps, "id"> {}
+export interface CreateUserResponse extends Omit<CreateUserProps, "password"> {
+  password?: string;
+}
