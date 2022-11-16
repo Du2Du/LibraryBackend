@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {
   BadRequestError,
@@ -6,13 +7,12 @@ import {
   UnauthorizedError,
 } from "http-errors-enhanced";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 import { z } from "zod";
+import { CreateUserResponse } from "../../../Types";
 import { userDAO } from "../../DAOs";
-import { CreateUserProps, CreateUserResponse } from "../../../Types";
 
 export const UserBO = () => {
-  const verifyUserByEmail = async (email: string) => {
+  const findUserByEmail = async (email: string) => {
     const existsUserEmail = await userDAO.findUnique({
       where: {
         email,
@@ -21,13 +21,22 @@ export const UserBO = () => {
     return existsUserEmail;
   };
 
-  const verifyUserByCpf = async (cpf: string) => {
+  const findUserByCpf = async (cpf: string) => {
     const existsUserCpf = await userDAO.findUnique({
       where: {
         cpf,
       },
     });
     return existsUserCpf;
+  };
+
+  const findUserById = async (id: number) => {
+    const user = await userDAO.findUnique({
+      where: {
+        id,
+      },
+    });
+    return user;
   };
 
   const createToken = (id: number, isAccessToken = true) => {
@@ -46,6 +55,14 @@ export const UserBO = () => {
     res.setCookie(cookieName, cookieValue);
   };
 
+  const returnIdWithCookie = (cookie: string) => {
+    const token = jwt.decode(cookie);
+    if (typeof token === "string" || token === null)
+      throw new BadRequestError("Ocorreu um erro.");
+
+    return token.id;
+  };
+
   const createUser = async (req: FastifyRequest, res: FastifyReply) => {
     const userSchema = z.object({
       name: z.string(),
@@ -57,9 +74,9 @@ export const UserBO = () => {
     const userData = userSchema.parse(req.body);
     const { email, cpf, password } = userData;
 
-    if (await verifyUserByEmail(email))
+    if (await findUserByEmail(email))
       throw new ConflictError("Usuário com email já cadastrado!");
-    if (await verifyUserByCpf(cpf))
+    if (await findUserByCpf(cpf))
       throw new ConflictError("Usuário com cpf já cadastrado!");
     if (!/^[0-9]+$/.test(cpf))
       throw new BadRequestError("O CPF deve conter apenas números.");
@@ -80,7 +97,7 @@ export const UserBO = () => {
 
     const userData = userSchema.parse(req.body);
     const { email } = userData;
-    const userLogged = await verifyUserByEmail(email);
+    const userLogged = await findUserByEmail(email);
     if (!userLogged?.id) throw new NotFoundError("Usuário não encontrado.");
 
     const { id, password } = userLogged;
@@ -94,5 +111,22 @@ export const UserBO = () => {
     res.send("Usuário logado com sucesso!");
   };
 
-  return { createUser, userLogin };
+  const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
+    const refreshToken = req.cookies.refreshToken;
+    console.log(refreshToken);
+    if (!refreshToken) throw new NotFoundError("Cookie não existente.");
+
+    const tokenValidate = jwt.verify(
+      refreshToken,
+      process.env.TOKEN_SECRET ?? ""
+    );
+
+    if (!tokenValidate) throw new UnauthorizedError("Cookie não válido.");
+    const userId = returnIdWithCookie(refreshToken);
+    const accessToken = createToken(userId);
+    setCookie(res, "accessToken", accessToken);
+    res.send("Token atualizado com sucesso.");
+  };
+
+  return { createUser, userLogin, refreshToken };
 };
