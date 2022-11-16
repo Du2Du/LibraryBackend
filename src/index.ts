@@ -12,6 +12,7 @@ const app = async () => {
   await fastify.register(fastifyCors, {
     origin: true,
   });
+
   fastify.register(UserControler, {
     prefix: "/user",
   });
