@@ -113,7 +113,6 @@ export const UserBO = () => {
 
   const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
     const refreshToken = req.cookies.refreshToken;
-    console.log(refreshToken);
     if (!refreshToken) throw new NotFoundError("Cookie não existente.");
 
     const tokenValidate = jwt.verify(
