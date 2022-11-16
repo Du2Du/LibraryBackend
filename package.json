@@ -13,6 +13,7 @@
     "@prisma/client": "^4.6.1",
     "dotenv": "^16.0.3",
     "fastify": "^4.9.2",
+    "http-errors-enhanced": "^1.0.12",
     "pg": "^8.8.0",
     "zod": "^3.19.1"
   },
