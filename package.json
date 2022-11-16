@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.2.0",
     "@prisma/client": "^4.6.1",
     "bcrypt": "^5.1.0",

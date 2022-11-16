@@ -35,7 +35,6 @@ export const UserBO = () => {
       process.env.TOKEN_SECRET ?? "",
       { algorithm: "ES512", expiresIn: "5h" }
     );
-
     return token;
   };
 
@@ -82,15 +81,14 @@ export const UserBO = () => {
 
     const userData = userSchema.parse(req.body);
     const { email } = userData;
-    const user = await verifyUserByEmail(email);
-
-    if (!user) throw new NotFoundError("Usuário não encontrado.");
+    if (!(await verifyUserByEmail(email)))
+      throw new NotFoundError("Usuário não encontrado.");
 
     const accessToken = createAccessToken(email);
     const refreshToken = createRefreshToken(email);
-
     req.headers["authorization"] = "Bearer " + accessToken;
-
+    res.setCookie("accessToken", accessToken);
+    res.setCookie("refreshToken", refreshToken);
     console.log("----------------");
     console.log(accessToken);
 
