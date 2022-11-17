@@ -144,7 +144,10 @@ export const UserBO = () => {
     return user;
   };
 
-  const updateUser = async (req: FastifyRequest, res: FastifyReply) => {
+  const updateUser = async (
+    req: FastifyRequest<{ Params: { userId: number } }>,
+    res: FastifyReply
+  ) => {
     const { userId } = req.params;
 
     const updateUserSchema = z.object({
@@ -153,21 +156,22 @@ export const UserBO = () => {
     });
     const uptadeUserData = updateUserSchema.parse(req.body);
     const { email } = uptadeUserData;
-    const currentUser = await me();
+    const currentUser = await me(req, res);
 
-    if (currentUser.id !== userId)
+    if (currentUser?.id !== userId)
       throw new ForbiddenError("Usuário não permitido.");
     if (await findUserByEmail(email))
       throw new ConflictError("Usuário com email já utilizado.");
     if (!(await findUserById(userId)))
       throw new NotFoundError("Usuário não encontrado.");
 
-    const user = await userDAO.upsert({
+    const user: CreateUserResponse | null = await userDAO.update({
       where: {
         id: userId,
       },
-      update: { ...uptadeUserData },
+      data: { ...uptadeUserData },
     });
+    delete user.password;
     return res.send(user);
   };
 

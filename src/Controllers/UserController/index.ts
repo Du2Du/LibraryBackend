@@ -7,5 +7,5 @@ export const UserControler = async (fastify: FastifyInstance) => {
   fastify.post("/login", userLogin);
   fastify.get("/me", me);
   fastify.get("/refresh-token", refreshToken);
-  fastify.put("/update", updateUser)
+  fastify.put("/update/:userId", updateUser);
 };
