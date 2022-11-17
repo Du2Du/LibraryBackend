@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import * as dotenv from "dotenv";
 import fastifyCors from "@fastify/cors";
-import { UserControler } from "./Controllers";
+import { UserControler, BookController } from "./Controllers";
 import fastifyCookie from "@fastify/cookie";
 dotenv.config();
 
@@ -22,6 +22,9 @@ const app = async () => {
   fastify.register(UserControler, {
     prefix: "/user",
   });
+  fastify.register(BookController, {
+    prefix: "/book",
+  })
 
   fastify.listen({ port: 8099 });
 };
