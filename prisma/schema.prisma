@@ -20,4 +20,18 @@ model User {
   cpf      String @unique
   email    String @unique
   password String
+  books    Book[]
+}
+
+model Book {
+  id                    Int    @id @default(autoincrement())
+  bookName              String
+  authorName            String
+  pages                 Int
+  chapter               Int
+  publishingCompanyName String
+  linguage              String
+  quantity              Int
+  sallerId              Int
+  saller                User   @relation(fields: [sallerId], references: [id])
 }
