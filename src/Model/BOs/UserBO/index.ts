@@ -5,6 +5,7 @@ import {
   ConflictError,
   NotFoundError,
   UnauthorizedError,
+  ForbiddenError
 } from "http-errors-enhanced";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -108,7 +109,7 @@ export const UserBO = () => {
     const refreshToken = createToken(id, false);
     setCookie(res, "accessToken", accessToken);
     setCookie(res, "refreshToken", refreshToken);
-    res.send("Usuário logado com sucesso!");
+    return res.send("Usuário logado com sucesso!");
   };
 
   const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
@@ -124,7 +125,7 @@ export const UserBO = () => {
     const userId = returnIdFromCookie(refreshToken);
     const accessToken = createToken(userId);
     setCookie(res, "accessToken", accessToken);
-    res.send("Token atualizado com sucesso.");
+    return res.send("Token atualizado com sucesso.");
   };
 
   const me = async (req: FastifyRequest, res: FastifyReply) => {
@@ -143,5 +144,29 @@ export const UserBO = () => {
     return user;
   };
 
-  return { createUser, userLogin, refreshToken, me };
+  const updateUser = async (req: FastifyRequest, res: FastifyReply) => {
+    const { userId } = req.params;
+
+    const updateUserSchema = z.object({
+      name: z.string(),
+      email: z.string().email(),
+    })
+    const uptadeUserData = updateUserSchema.parse(req.body);
+    const { email } = uptadeUserData;
+    const currentUser = await me();
+
+    if (currentUser.id !== userId) throw new ForbiddenError("Usuário não permitido.");
+    if (await findUserByEmail(email)) throw new ConflictError("Usuário com email já utilizado.");
+    if (!await findUserById(userId)) throw new NotFoundError("Usuário não encontrado.");
+
+    const user = await userDAO.upsert({
+      where: {
+        id: userId
+      },
+      update: { ...uptadeUserData }
+    })
+    return res.send(user);
+  }
+
+  return { createUser, userLogin, refreshToken, me, updateUser };
 };
