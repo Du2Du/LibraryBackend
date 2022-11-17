@@ -24,7 +24,7 @@ const app = async () => {
   });
   fastify.register(BookController, {
     prefix: "/book",
-  })
+  });
 
   fastify.listen({ port: 8099 });
 };

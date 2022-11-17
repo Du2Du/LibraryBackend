@@ -5,7 +5,7 @@ import {
   ConflictError,
   NotFoundError,
   UnauthorizedError,
-  ForbiddenError
+  ForbiddenError,
 } from "http-errors-enhanced";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -150,23 +150,26 @@ export const UserBO = () => {
     const updateUserSchema = z.object({
       name: z.string(),
       email: z.string().email(),
-    })
+    });
     const uptadeUserData = updateUserSchema.parse(req.body);
     const { email } = uptadeUserData;
     const currentUser = await me();
 
-    if (currentUser.id !== userId) throw new ForbiddenError("Usuário não permitido.");
-    if (await findUserByEmail(email)) throw new ConflictError("Usuário com email já utilizado.");
-    if (!await findUserById(userId)) throw new NotFoundError("Usuário não encontrado.");
+    if (currentUser.id !== userId)
+      throw new ForbiddenError("Usuário não permitido.");
+    if (await findUserByEmail(email))
+      throw new ConflictError("Usuário com email já utilizado.");
+    if (!(await findUserById(userId)))
+      throw new NotFoundError("Usuário não encontrado.");
 
     const user = await userDAO.upsert({
       where: {
-        id: userId
+        id: userId,
       },
-      update: { ...uptadeUserData }
-    })
+      update: { ...uptadeUserData },
+    });
     return res.send(user);
-  }
+  };
 
   return { createUser, userLogin, refreshToken, me, updateUser };
 };

@@ -1,10 +1,7 @@
 export const BookBO = () => {
+  const createBook = async (req: FastifyRequest, res: FastifyReply) => {};
 
-    const createBook = async (req: FastifyRequest, res: FastifyReply) => {
-
-    }
-
-    return {
-        createBook
-    }
-}
+  return {
+    createBook,
+  };
+};
