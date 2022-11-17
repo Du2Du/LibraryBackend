@@ -28,7 +28,7 @@ model Book {
   bookName              String
   authorName            String
   pages                 Int
-  chapter               Int
+  chapters              Int
   publishingCompanyName String
   linguage              String
   quantity              Int
