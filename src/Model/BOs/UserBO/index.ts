@@ -3,14 +3,18 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import {
   BadRequestError,
   ConflictError,
+  ForbiddenError,
   NotFoundError,
   UnauthorizedError,
-  ForbiddenError,
 } from "http-errors-enhanced";
 import jwt from "jsonwebtoken";
-import { z } from "zod";
 import { CreateUserResponse } from "../../../Types";
 import { userDAO } from "../../DAOs";
+import {
+  createUserSchema,
+  loginUserSchema,
+  updateUserSchema,
+} from "../../DTOs";
 
 export const UserBO = () => {
   const findUserByEmail = async (email: string) => {
@@ -65,14 +69,7 @@ export const UserBO = () => {
   };
 
   const createUser = async (req: FastifyRequest, res: FastifyReply) => {
-    const userSchema = z.object({
-      name: z.string(),
-      email: z.string().email(),
-      cpf: z.string().length(11),
-      password: z.string().min(6),
-    });
-
-    const userData = userSchema.parse(req.body);
+    const userData = createUserSchema.parse(req.body);
     const { email, cpf, password } = userData;
 
     if (await findUserByEmail(email))
@@ -91,12 +88,7 @@ export const UserBO = () => {
   };
 
   const userLogin = async (req: FastifyRequest, res: FastifyReply) => {
-    const userSchema = z.object({
-      email: z.string().email(),
-      password: z.string().min(6),
-    });
-
-    const userData = userSchema.parse(req.body);
+    const userData = loginUserSchema.parse(req.body);
     const { email } = userData;
     const userLogged = await findUserByEmail(email);
     if (!userLogged?.id) throw new NotFoundError("Usuário não encontrado.");
@@ -149,11 +141,6 @@ export const UserBO = () => {
     res: FastifyReply
   ) => {
     const { userId } = req.params;
-
-    const updateUserSchema = z.object({
-      name: z.string(),
-      email: z.string().email(),
-    });
     const uptadeUserData = updateUserSchema.parse(req.body);
     const { email } = uptadeUserData;
     const currentUser = await me(req, res);
