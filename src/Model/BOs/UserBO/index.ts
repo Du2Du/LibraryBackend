@@ -132,7 +132,11 @@ export const UserBO = () => {
 
     const userId = returnIdFromCookie(accessToken);
     const user: CreateUserResponse | null = await findUserById(userId);
-    delete user?.password;
+    if (user === null)
+      throw new UnauthorizedError(
+        "Ocorreu um erro, tente realizar o login novamente."
+      );
+    delete user.password;
     return user;
   };
 
