@@ -29,6 +29,14 @@ export const BookBO = () => {
       throw new ConflictError(
         "Livro já cadastrado, a melhor opção seria aumentar a quantidade."
       );
+
+    const createdBook = await bookDAO.create({
+      data: {
+        ...createBookData,
+        sallerId: currentUser.id,
+      },
+    });
+    return res.send(createdBook);
   };
 
   return {

@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import {
   BadRequestError,
   ConflictError,
@@ -8,6 +8,7 @@ import {
   UnauthorizedError,
 } from "http-errors-enhanced";
 import jwt from "jsonwebtoken";
+import { fastify } from "../../../server";
 import { CreateUserResponse } from "../../../Types";
 import { userDAO } from "../../DAOs";
 import {
@@ -45,10 +46,15 @@ export const UserBO = () => {
   };
 
   const createToken = (id: number, isAccessToken = true) => {
-    const token = jwt.sign({ id }, process.env.TOKEN_SECRET ?? "", {
-      algorithm: "HS512",
-      expiresIn: isAccessToken ? "5h" : "90 days",
-    });
+    const token = fastify.jwt.sign(
+      { id },
+      {
+        algorithm: "HS512",
+        expiresIn: isAccessToken
+          ? process.env.ACCESS_TOKEN_EXPIRES
+          : process.env.REFRESH_TOKEN_EXPIRES,
+      }
+    );
     return token;
   };
 
@@ -108,10 +114,7 @@ export const UserBO = () => {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) throw new NotFoundError("Cookie não existente.");
 
-    const tokenValidate = jwt.verify(
-      refreshToken,
-      process.env.TOKEN_SECRET ?? ""
-    );
+    const tokenValidate = fastify.jwt.verify(refreshToken);
 
     if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
     const userId = returnIdFromCookie(refreshToken);
@@ -124,10 +127,7 @@ export const UserBO = () => {
     const accessToken = req.cookies.accessToken;
     if (!accessToken) throw new UnauthorizedError("Usuário não autorizado.");
 
-    const validateToken = jwt.verify(
-      accessToken,
-      process.env.TOKEN_SECRET ?? ""
-    );
+    const validateToken = fastify.jwt.verify(accessToken);
     if (!validateToken) throw new UnauthorizedError("Token inválido.");
 
     const userId = returnIdFromCookie(accessToken);

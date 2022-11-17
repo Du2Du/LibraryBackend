@@ -1,18 +1,27 @@
-import Fastify from "fastify";
+import Fastify, { FastifyInstance } from "fastify";
 import * as dotenv from "dotenv";
 import fastifyCors from "@fastify/cors";
 import { UserControler, BookController } from "./Controllers";
-import fastifyCookie from "@fastify/cookie";
+import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
+import fastifyJwt from "@fastify/jwt";
 dotenv.config();
 
+let fastify: FastifyInstance;
 const app = async () => {
-  const fastify = Fastify({
+  fastify = Fastify({
     logger: true,
   });
 
   fastify.register(fastifyCookie, {
-    secret: process.env.TOKEN_SECRET,
-    parseOptions: {},
+    parseOptions: {
+      httpOnly: true,
+      secure: true,
+    },
+    hook: "preHandler",
+  } as FastifyCookieOptions);
+
+  fastify.register(fastifyJwt, {
+    secret: process.env.TOKEN_SECRET ?? "",
   });
 
   await fastify.register(fastifyCors, {
@@ -28,5 +37,5 @@ const app = async () => {
 
   fastify.listen({ port: 8099 });
 };
-
+export { fastify };
 app();
