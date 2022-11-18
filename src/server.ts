@@ -28,6 +28,8 @@ const app = async () => {
     origin: true,
   });
 
+  fastify.decorate("authorization", {});
+
   fastify.register(UserControler, {
     prefix: "/user",
   });
