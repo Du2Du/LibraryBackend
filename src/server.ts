@@ -1,18 +1,15 @@
-import Fastify, {
-  FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
-} from "fastify";
-import * as dotenv from "dotenv";
-import fastifyCors from "@fastify/cors";
-import { UserControler, BookController } from "./Controllers";
 import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
+import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
+import * as dotenv from "dotenv";
+import Fastify from "fastify";
+import AutoLoad from "@fastify/autoload";
+import path from "path";
+import { BookController, UserControler } from "./Controllers";
 dotenv.config();
 
-let fastify: FastifyInstance;
 const app = async () => {
-  fastify = Fastify({
+  const fastify = Fastify({
     logger: true,
   });
 
@@ -31,18 +28,6 @@ const app = async () => {
   await fastify.register(fastifyCors, {
     origin: true,
   });
-
-  fastify.decorate(
-    "authorization",
-    async (req: FastifyRequest, res: FastifyReply) => {
-      try {
-        await req.jwtVerify();
-      } catch (err) {
-        res.send(err);
-      }
-    }
-  );
-
   fastify.register(UserControler, {
     prefix: "/user",
   });
@@ -50,7 +35,11 @@ const app = async () => {
     prefix: "/book",
   });
 
+  fastify.register(AutoLoad, {
+    dir: path.join(__dirname, "Controllers"),
+    options: {},
+  });
+
   fastify.listen({ port: 8099 });
 };
-export { fastify };
 app();

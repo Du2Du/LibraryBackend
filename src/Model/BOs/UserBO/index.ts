@@ -7,8 +7,6 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "http-errors-enhanced";
-import jwt from "jsonwebtoken";
-import { fastify } from "../../../server";
 import { CreateUserResponse } from "../../../Types";
 import { userDAO } from "../../DAOs";
 import {
@@ -17,7 +15,7 @@ import {
   updateUserSchema,
 } from "../../DTOs";
 
-export const UserBO = () => {
+export const UserBO = (fastify: FastifyInstance) => {
   const findUserByEmail = async (email: string) => {
     const existsUserEmail = await userDAO.findUnique({
       where: {
@@ -121,8 +119,11 @@ export const UserBO = () => {
   };
 
   const me = async (req: FastifyRequest, res: FastifyReply) => {
+    console.log(fastify.jwt.lookupToken(req));
+
     const userId = returnIdFromCookie(req.user);
     const user: CreateUserResponse | null = await findUserById(userId);
+
     if (user === null)
       throw new UnauthorizedError(
         "Ocorreu um erro, tente realizar o login novamente."
