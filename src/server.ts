@@ -1,4 +1,8 @@
-import Fastify, { FastifyInstance } from "fastify";
+import Fastify, {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+} from "fastify";
 import * as dotenv from "dotenv";
 import fastifyCors from "@fastify/cors";
 import { UserControler, BookController } from "./Controllers";
@@ -28,7 +32,16 @@ const app = async () => {
     origin: true,
   });
 
-  fastify.decorate("authorization", {});
+  fastify.decorate(
+    "authorization",
+    async (req: FastifyRequest, res: FastifyReply) => {
+      try {
+        await req.jwtVerify();
+      } catch (err) {
+        res.send(err);
+      }
+    }
+  );
 
   fastify.register(UserControler, {
     prefix: "/user",
