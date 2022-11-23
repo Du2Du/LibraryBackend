@@ -119,8 +119,6 @@ export const UserBO = (fastify: FastifyInstance) => {
   };
 
   const me = async (req: FastifyRequest, res: FastifyReply) => {
-    console.log(fastify.jwt.lookupToken(req));
-
     const userId = returnIdFromCookie(req.user);
     const user: CreateUserResponse | null = await findUserById(userId);
 
