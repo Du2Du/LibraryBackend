@@ -156,5 +156,18 @@ export const UserBO = (fastify: FastifyInstance) => {
     return res.send(user);
   };
 
-  return { createUser, userLogin, refreshToken, me, updateUser };
+  const getById = async (
+    req: FastifyRequest<{ Params: { userId: number } }>,
+    res: FastifyReply
+  ) => {
+    const { userId } = req.params;
+    const user = await userDAO.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    return res.send(user);
+  };
+
+  return { createUser, userLogin, refreshToken, me, updateUser, getById };
 };

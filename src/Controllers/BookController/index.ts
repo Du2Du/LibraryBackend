@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { BookBO } from "../../Model/BOs/BookBO";
 
 export const BookController = async (fastify: FastifyInstance) => {
-  const { createBook } = BookBO();
+  const { createBook } = BookBO(fastify);
 
   fastify.post("/", createBook);
 };

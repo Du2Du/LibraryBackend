@@ -1,11 +1,11 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { ConflictError } from "http-errors-enhanced";
 import { bookDAO } from "../../DAOs";
 import { createBookSchema } from "../../DTOs";
 import { UserBO } from "../UserBO";
 
-export const BookBO = () => {
-  const { me } = UserBO();
+export const BookBO = (fastify: FastifyInstance) => {
+  const { me } = UserBO(fastify);
 
   const findBookFromNameWithSallerId = async (
     name: string,
