@@ -60,9 +60,26 @@ export const BookBO = (fastify: FastifyInstance) => {
     return res.send(book);
   };
 
+  const updateBook = async (
+    req: FastifyRequest<{ Params: { bookId: number } }>,
+    res: FastifyReply
+  ) => {
+    const bookId = Number(req.params.bookId);
+    const updateBook = createBookSchema.parse(req.body);
+    const newUpdatedBook = await bookDAO.update({
+      data: updateBook,
+      where: {
+        id: bookId,
+      },
+    });
+
+    return res.send(newUpdatedBook);
+  };
+
   return {
     createBook,
     getAllBooks,
     getById,
+    updateBook,
   };
 };
