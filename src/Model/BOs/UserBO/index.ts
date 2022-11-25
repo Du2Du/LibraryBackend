@@ -7,7 +7,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "http-errors-enhanced";
-import { CreateUserResponse } from "../../../Types";
+import { UserDTO } from "../../../Types";
 import { userDAO } from "../../DAOs";
 import {
   createUserSchema,
@@ -48,6 +48,7 @@ export const UserBO = (fastify: FastifyInstance) => {
       { id },
       {
         algorithm: "HS512",
+        sub: String(id),
         expiresIn: isAccessToken
           ? process.env.ACCESS_TOKEN_EXPIRES
           : process.env.REFRESH_TOKEN_EXPIRES,
@@ -82,10 +83,9 @@ export const UserBO = (fastify: FastifyInstance) => {
       throw new BadRequestError("O CPF deve conter apenas números.");
 
     const newPassword = await bcrypt.hash(password, 9);
-    const user: CreateUserResponse = await userDAO.create({
+    const user: UserDTO = await userDAO.create({
       data: { ...userData, password: newPassword },
     });
-    delete user.password;
     return user;
   };
 
@@ -99,10 +99,8 @@ export const UserBO = (fastify: FastifyInstance) => {
     if (!passwordVerify) throw new UnauthorizedError("Senha inválida.");
 
     const accessToken = createToken(id);
-    const refreshToken = createToken(id, false);
-    setCookie(res, "accessToken", accessToken);
-    setCookie(res, "refreshToken", refreshToken);
-    return res.send("Usuário logado com sucesso!");
+    createToken(id, false);
+    return res.send({ accessToken });
   };
 
   const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
@@ -120,13 +118,12 @@ export const UserBO = (fastify: FastifyInstance) => {
 
   const me = async (req: FastifyRequest, res: FastifyReply) => {
     const userId = returnIdFromCookie(req.user);
-    const user: CreateUserResponse | null = await findUserById(userId);
-
+    const user: UserDTO | null = await findUserById(userId);
     if (user === null)
       throw new UnauthorizedError(
         "Ocorreu um erro, tente realizar o login novamente."
       );
-    delete user.password;
+    delete user?.password;
     return user;
   };
 
@@ -146,13 +143,13 @@ export const UserBO = (fastify: FastifyInstance) => {
     if (!(await findUserById(userId)))
       throw new NotFoundError("Usuário não encontrado.");
 
-    const user: CreateUserResponse | null = await userDAO.update({
+    const user: UserDTO | null = await userDAO.update({
       where: {
         id: userId,
       },
       data: { ...uptadeUserData },
     });
-    delete user.password;
+    delete user?.password;
     return res.send(user);
   };
 

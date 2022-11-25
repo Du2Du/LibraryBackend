@@ -8,13 +8,7 @@ export const UserControler = async (fastify: FastifyInstance) => {
 
   fastify.post("/", createUser);
   fastify.post("/login", userLogin);
-  fastify.get(
-    "/me",
-    {
-      onRequest: [authenticate],
-    },
-    me
-  );
+  fastify.get("/me", me);
   fastify.get("/refresh-token", refreshToken);
   fastify.put("/update/:userId", updateUser);
   fastify.get("/:userId", getById);

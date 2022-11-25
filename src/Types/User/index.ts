@@ -7,6 +7,6 @@ export interface UserProps {
 }
 
 export interface CreateUserProps extends Omit<UserProps, "id"> {}
-export interface CreateUserResponse extends Omit<UserProps, "password"> {
+export interface UserDTO extends Omit<UserProps, "password"> {
   password?: string;
 }

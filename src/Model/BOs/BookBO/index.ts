@@ -39,7 +39,14 @@ export const BookBO = (fastify: FastifyInstance) => {
     return res.send(createdBook);
   };
 
+  const getAllBooks = async (req: FastifyRequest, res: FastifyReply) => {
+    const allBooks = await bookDAO.findMany();
+
+    return res.send(allBooks);
+  };
+
   return {
     createBook,
+    getAllBooks,
   };
 };
