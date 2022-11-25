@@ -1,10 +1,12 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
+import { RatingBO } from "../../Model/BOs";
 import { BookBO } from "../../Model/BOs/BookBO";
-import { createBookSchema } from "../../Model/DTOs";
+import { createBookSchema, createRatingSchema } from "../../Model/DTOs";
 
 export const BookController = async (fastify: FastifyInstance) => {
   const { createBook, getAllBooks, getById, updateBook, deleteBook } =
     BookBO(fastify);
+  const { createRating } = RatingBO(fastify);
 
   fastify.post("/", (req, res) => {
     const createBookData = createBookSchema.parse(req.body);
@@ -37,4 +39,9 @@ export const BookController = async (fastify: FastifyInstance) => {
       deleteBook(bookId, res);
     }
   );
+
+  fastify.post("/rating", (req, res) => {
+    const ratingData = createRatingSchema.parse(req.body);
+    createRating(ratingData, req.user, res);
+  });
 };

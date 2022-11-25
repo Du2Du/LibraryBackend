@@ -4,7 +4,7 @@ import {
   ConflictError,
   NotFoundError,
 } from "http-errors-enhanced";
-import { CreateBook } from "../../../Types";
+import { CreateBook, UserToken } from "../../../Types";
 import { bookDAO } from "../../DAOs";
 import { UserBO } from "../UserBO";
 
@@ -26,7 +26,7 @@ export const BookBO = (fastify: FastifyInstance) => {
 
   const createBook = async (
     createBookData: CreateBook,
-    userToken: string | object | Buffer,
+    userToken: UserToken,
     res: FastifyReply
   ) => {
     const { bookName, price } = createBookData;

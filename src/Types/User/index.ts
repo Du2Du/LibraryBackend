@@ -20,3 +20,5 @@ export interface UserLogin {
   email: string;
   password: string;
 }
+
+export type UserToken = string | object | Buffer;

@@ -11,6 +11,7 @@ import {
   CreateUserProps,
   UserDTO,
   UserLogin,
+  UserToken,
   UserUpdate,
 } from "../../../Types";
 import { userDAO } from "../../DAOs";
@@ -116,7 +117,7 @@ export const UserBO = (fastify: FastifyInstance) => {
     return res.send("Token atualizado coFm sucesso.");
   };
 
-  const me = async (userToken: string | object | Buffer) => {
+  const me = async (userToken: UserToken) => {
     const userId = returnIdFromCookie(userToken);
     const user: UserDTO | null = await findUserById(userId);
     if (user === null)
@@ -128,7 +129,7 @@ export const UserBO = (fastify: FastifyInstance) => {
   };
 
   const updateUser = async (
-    userToken: string | object | Buffer,
+    userToken: UserToken,
     userId: number,
     updateUserData: UserUpdate,
     res: FastifyReply
