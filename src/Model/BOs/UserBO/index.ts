@@ -99,21 +99,18 @@ export const UserBO = (fastify: FastifyInstance) => {
     if (!passwordVerify) throw new UnauthorizedError("Senha inválida.");
 
     const accessToken = createToken(id);
-    createToken(id, false);
+    const refreshToken = createToken(id, false);
+    setCookie(res, "refreshToken", refreshToken);
     return res.send({ accessToken });
   };
 
-  //CORRIGIR
   const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) throw new NotFoundError("Cookie não existente.");
-
     const tokenValidate = fastify.jwt.verify(refreshToken);
-
     if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
-    const userId = returnIdFromCookie(req.user);
-    const accessToken = createToken(userId);
-    setCookie(res, "accessToken", accessToken);
+    const userId = returnIdFromCookie(fastify.jwt.decode(refreshToken));
+    createToken(userId);
     return res.send("Token atualizado com sucesso.");
   };
 
