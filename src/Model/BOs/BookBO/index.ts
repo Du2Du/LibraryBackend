@@ -1,11 +1,11 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { ConflictError } from "http-errors-enhanced";
 import { bookDAO } from "../../DAOs";
 import { createBookSchema } from "../../DTOs";
 import { UserBO } from "../UserBO";
 
-export const BookBO = () => {
-  const { me } = UserBO();
+export const BookBO = (fastify: FastifyInstance) => {
+  const { me } = UserBO(fastify);
 
   const findBookFromNameWithSallerId = async (
     name: string,
@@ -39,7 +39,14 @@ export const BookBO = () => {
     return res.send(createdBook);
   };
 
+  const getAllBooks = async (req: FastifyRequest, res: FastifyReply) => {
+    const allBooks = await bookDAO.findMany();
+
+    return res.send(allBooks);
+  };
+
   return {
     createBook,
+    getAllBooks,
   };
 };

@@ -7,9 +7,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "http-errors-enhanced";
-import jwt from "jsonwebtoken";
-import { fastify } from "../../../server";
-import { CreateUserResponse } from "../../../Types";
+import { UserDTO } from "../../../Types";
 import { userDAO } from "../../DAOs";
 import {
   createUserSchema,
@@ -17,7 +15,7 @@ import {
   updateUserSchema,
 } from "../../DTOs";
 
-export const UserBO = () => {
+export const UserBO = (fastify: FastifyInstance) => {
   const findUserByEmail = async (email: string) => {
     const existsUserEmail = await userDAO.findUnique({
       where: {
@@ -50,6 +48,7 @@ export const UserBO = () => {
       { id },
       {
         algorithm: "HS512",
+        sub: String(id),
         expiresIn: isAccessToken
           ? process.env.ACCESS_TOKEN_EXPIRES
           : process.env.REFRESH_TOKEN_EXPIRES,
@@ -66,11 +65,9 @@ export const UserBO = () => {
     res.setCookie(cookieName, cookieValue);
   };
 
-  const returnIdFromCookie = (cookie: string) => {
-    const token = jwt.decode(cookie);
+  const returnIdFromCookie = (token: any) => {
     if (typeof token === "string" || token === null)
       throw new BadRequestError("Ocorreu um erro.");
-
     return token.id;
   };
 
@@ -86,10 +83,9 @@ export const UserBO = () => {
       throw new BadRequestError("O CPF deve conter apenas números.");
 
     const newPassword = await bcrypt.hash(password, 9);
-    const user: CreateUserResponse = await userDAO.create({
+    const user: UserDTO = await userDAO.create({
       data: { ...userData, password: newPassword },
     });
-    delete user.password;
     return user;
   };
 
@@ -98,16 +94,13 @@ export const UserBO = () => {
     const { email } = userData;
     const userLogged = await findUserByEmail(email);
     if (!userLogged?.id) throw new NotFoundError("Usuário não encontrado.");
-
     const { id, password } = userLogged;
     const passwordVerify = await bcrypt.compare(userData.password, password);
     if (!passwordVerify) throw new UnauthorizedError("Senha inválida.");
 
     const accessToken = createToken(id);
-    const refreshToken = createToken(id, false);
-    setCookie(res, "accessToken", accessToken);
-    setCookie(res, "refreshToken", refreshToken);
-    return res.send("Usuário logado com sucesso!");
+    createToken(id, false);
+    return res.send({ accessToken });
   };
 
   const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
@@ -117,26 +110,20 @@ export const UserBO = () => {
     const tokenValidate = fastify.jwt.verify(refreshToken);
 
     if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
-    const userId = returnIdFromCookie(refreshToken);
+    const userId = returnIdFromCookie(req.user);
     const accessToken = createToken(userId);
     setCookie(res, "accessToken", accessToken);
     return res.send("Token atualizado com sucesso.");
   };
 
   const me = async (req: FastifyRequest, res: FastifyReply) => {
-    const accessToken = req.cookies.accessToken;
-    if (!accessToken) throw new UnauthorizedError("Usuário não autorizado.");
-
-    const validateToken = fastify.jwt.verify(accessToken);
-    if (!validateToken) throw new UnauthorizedError("Token inválido.");
-
-    const userId = returnIdFromCookie(accessToken);
-    const user: CreateUserResponse | null = await findUserById(userId);
+    const userId = returnIdFromCookie(req.user);
+    const user: UserDTO | null = await findUserById(userId);
     if (user === null)
       throw new UnauthorizedError(
         "Ocorreu um erro, tente realizar o login novamente."
       );
-    delete user.password;
+    delete user?.password;
     return user;
   };
 
@@ -156,15 +143,28 @@ export const UserBO = () => {
     if (!(await findUserById(userId)))
       throw new NotFoundError("Usuário não encontrado.");
 
-    const user: CreateUserResponse | null = await userDAO.update({
+    const user: UserDTO | null = await userDAO.update({
       where: {
         id: userId,
       },
       data: { ...uptadeUserData },
     });
-    delete user.password;
+    delete user?.password;
     return res.send(user);
   };
 
-  return { createUser, userLogin, refreshToken, me, updateUser };
+  const getById = async (
+    req: FastifyRequest<{ Params: { userId: number } }>,
+    res: FastifyReply
+  ) => {
+    const { userId } = req.params;
+    const user = await userDAO.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    return res.send(user);
+  };
+
+  return { createUser, userLogin, refreshToken, me, updateUser, getById };
 };

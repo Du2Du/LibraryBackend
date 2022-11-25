@@ -1,24 +1,18 @@
-import Fastify, { FastifyInstance } from "fastify";
-import * as dotenv from "dotenv";
-import fastifyCors from "@fastify/cors";
-import { UserControler, BookController } from "./Controllers";
 import fastifyCookie, { FastifyCookieOptions } from "@fastify/cookie";
+import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
+import * as dotenv from "dotenv";
+import Fastify from "fastify";
+import AutoLoad from "@fastify/autoload";
+import path from "path";
+import { BookController, UserControler } from "./Controllers";
+import { authenticate } from "./Utils/authenticate";
 dotenv.config();
 
-let fastify: FastifyInstance;
 const app = async () => {
-  fastify = Fastify({
+  const fastify = Fastify({
     logger: true,
   });
-
-  fastify.register(fastifyCookie, {
-    parseOptions: {
-      httpOnly: true,
-      secure: true,
-    },
-    hook: "preHandler",
-  } as FastifyCookieOptions);
 
   fastify.register(fastifyJwt, {
     secret: process.env.TOKEN_SECRET ?? "",
@@ -27,9 +21,6 @@ const app = async () => {
   await fastify.register(fastifyCors, {
     origin: true,
   });
-
-  fastify.decorate("authorization", {});
-
   fastify.register(UserControler, {
     prefix: "/user",
   });
@@ -37,7 +28,11 @@ const app = async () => {
     prefix: "/book",
   });
 
+  fastify.addHook("onRequest", async (req, res) => {
+    if (req.url !== "/user/login" && req.url !== "/user/")
+      return await authenticate(req, res);
+  });
+
   fastify.listen({ port: 8099 });
 };
-export { fastify };
 app();
