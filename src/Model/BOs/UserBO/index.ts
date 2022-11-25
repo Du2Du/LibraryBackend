@@ -7,7 +7,12 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "http-errors-enhanced";
-import { UserDTO } from "../../../Types";
+import {
+  CreateUserProps,
+  UserDTO,
+  UserLogin,
+  UserUpdate,
+} from "../../../Types";
 import { userDAO } from "../../DAOs";
 import {
   createUserSchema,
@@ -71,8 +76,7 @@ export const UserBO = (fastify: FastifyInstance) => {
     return token.id;
   };
 
-  const createUser = async (req: FastifyRequest, res: FastifyReply) => {
-    const userData = createUserSchema.parse(req.body);
+  const createUser = async (userData: CreateUserProps) => {
     const { email, cpf, password } = userData;
 
     if (await findUserByEmail(email))
@@ -89,8 +93,7 @@ export const UserBO = (fastify: FastifyInstance) => {
     return user;
   };
 
-  const userLogin = async (req: FastifyRequest, res: FastifyReply) => {
-    const userData = loginUserSchema.parse(req.body);
+  const userLogin = async (userData: UserLogin, res: FastifyReply) => {
     const { email } = userData;
     const userLogged = await findUserByEmail(email);
     if (!userLogged?.id) throw new NotFoundError("Usuário não encontrado.");
@@ -104,18 +107,17 @@ export const UserBO = (fastify: FastifyInstance) => {
     return res.send({ accessToken });
   };
 
-  const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
-    const refreshToken = req.cookies.refreshToken;
+  const refreshToken = async (res: FastifyReply, refreshToken?: string) => {
     if (!refreshToken) throw new NotFoundError("Cookie não existente.");
     const tokenValidate = fastify.jwt.verify(refreshToken);
     if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
     const userId = returnIdFromCookie(fastify.jwt.decode(refreshToken));
     createToken(userId);
-    return res.send("Token atualizado com sucesso.");
+    return res.send("Token atualizado coFm sucesso.");
   };
 
-  const me = async (req: FastifyRequest, res: FastifyReply) => {
-    const userId = returnIdFromCookie(req.user);
+  const me = async (userToken: string | object | Buffer) => {
+    const userId = returnIdFromCookie(userToken);
     const user: UserDTO | null = await findUserById(userId);
     if (user === null)
       throw new UnauthorizedError(
@@ -126,13 +128,13 @@ export const UserBO = (fastify: FastifyInstance) => {
   };
 
   const updateUser = async (
-    req: FastifyRequest<{ Params: { userId: number } }>,
+    userToken: string | object | Buffer,
+    userId: number,
+    updateUserData: UserUpdate,
     res: FastifyReply
   ) => {
-    const userId = Number(req.params.userId);
-    const uptadeUserData = updateUserSchema.parse(req.body);
-    const { email } = uptadeUserData;
-    const currentUser = await me(req, res);
+    const { email } = updateUserData;
+    const currentUser = await me(userToken);
 
     if (currentUser?.id !== userId)
       throw new ForbiddenError("Usuário não permitido.");
@@ -145,17 +147,13 @@ export const UserBO = (fastify: FastifyInstance) => {
       where: {
         id: userId,
       },
-      data: { ...uptadeUserData },
+      data: { ...updateUserData },
     });
     delete user?.password;
     return res.send(user);
   };
 
-  const getById = async (
-    req: FastifyRequest<{ Params: { userId: number } }>,
-    res: FastifyReply
-  ) => {
-    const { userId } = req.params;
+  const getById = async (userId: number, res: FastifyReply) => {
     const user = await userDAO.findUnique({
       where: {
         id: Number(userId),

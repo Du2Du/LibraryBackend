@@ -1,15 +1,48 @@
-import { FastifyInstance } from "fastify";
+import { FastifyInstance, FastifyRequest } from "fastify";
 import { UserBO } from "../../Model/BOs";
-import { authenticate } from "../../Utils/authenticate";
+import {
+  createUserSchema,
+  loginUserSchema,
+  updateUserSchema,
+} from "../../Model/DTOs";
 
 export const UserControler = async (fastify: FastifyInstance) => {
   const { createUser, userLogin, refreshToken, me, updateUser, getById } =
     UserBO(fastify);
 
-  fastify.post("/", createUser);
-  fastify.post("/login", userLogin);
-  fastify.get("/me", me);
-  fastify.get("/refresh-token", refreshToken);
-  fastify.put("/:userId", updateUser);
-  fastify.get("/:userId", getById);
+  fastify.post("/", (req) => {
+    const userData = createUserSchema.parse(req.body);
+    createUser(userData);
+  });
+
+  fastify.post("/login", (req, res) => {
+    const userData = loginUserSchema.parse(req.body);
+    userLogin(userData, res);
+  });
+
+  fastify.get("/me", (req) => {
+    me(req.user);
+  });
+
+  fastify.get("/refresh-token", (req, res) => {
+    const refreshTokenString = req.cookies.refreshToken;
+    refreshToken(res, refreshTokenString);
+  });
+
+  fastify.put(
+    "/:userId",
+    (req: FastifyRequest<{ Params: { userId: number } }>, res) => {
+      const updateUserData = updateUserSchema.parse(req.body);
+      const userId = Number(req.params.userId);
+      updateUser(req.user, userId, updateUserData, res);
+    }
+  );
+
+  fastify.get(
+    "/:userId",
+    (req: FastifyRequest<{ Params: { userId: number } }>, res) => {
+      const { userId } = req.params;
+      getById(userId, res);
+    }
+  );
 };
