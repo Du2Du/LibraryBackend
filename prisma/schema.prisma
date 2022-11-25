@@ -15,24 +15,36 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
+  id       Int      @id @default(autoincrement())
   name     String
-  cpf      String @unique
-  email    String @unique
+  cpf      String   @unique
+  email    String   @unique
   password String
   books    Book[]
+  ratings  Rating[]
+}
+
+model Rating {
+  id           Int    @id @default(autoincrement())
+  description  String
+  userRatingId Int
+  bookId       Int
+  book         Book   @relation(fields: [bookId], references: [id])
+  userRating   User   @relation(fields: [userRatingId], references: [id])
 }
 
 model Book {
-  id                    Int    @id @default(autoincrement())
+  id                    Int      @id @default(autoincrement())
   bookName              String
   authorName            String
   pages                 Int
   chapters              Int
   publishingCompanyName String
   linguage              String
+  imgUrl                String
   quantity              Int
   price                 Float
   sallerId              Int
-  saller                User   @relation(fields: [sallerId], references: [id])
+  saller                User     @relation(fields: [sallerId], references: [id])
+  ratings               Rating[]
 }

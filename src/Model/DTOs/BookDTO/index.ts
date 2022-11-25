@@ -6,6 +6,7 @@ export const createBookSchema = z.object({
   pages: z.number(),
   chapters: z.number(),
   publishingCompanyName: z.string(),
+  imgUrl: z.string(),
   linguage: z.string(),
   price: z.number(),
   quantity: z.number(),
