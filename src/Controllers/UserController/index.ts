@@ -41,7 +41,7 @@ export const UserControler = async (fastify: FastifyInstance) => {
   fastify.get(
     "/:userId",
     (req: FastifyRequest<{ Params: { userId: number } }>, res) => {
-      const { userId } = req.params;
+      const userId = Number(req.params.userId);
       getById(userId, res);
     }
   );

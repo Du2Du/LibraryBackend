@@ -161,7 +161,7 @@ export const UserBO = (fastify: FastifyInstance) => {
       },
     });
     if (!user) throw new NotFoundError("Usuário não encontrado");
-    return res.send(user);
+    return user;
   };
 
   return { createUser, userLogin, refreshToken, me, updateUser, getById };

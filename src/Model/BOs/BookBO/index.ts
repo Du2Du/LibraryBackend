@@ -48,7 +48,7 @@ export const BookBO = (fastify: FastifyInstance) => {
 
   const getAllBooks = async (res: FastifyReply) => {
     const allBooks = await bookDAO.findMany();
-    return res.send(allBooks);
+    return allBooks;
   };
 
   const getById = async (bookId: number, res: FastifyReply) => {
@@ -58,7 +58,7 @@ export const BookBO = (fastify: FastifyInstance) => {
       },
     });
     if (!book) throw new NotFoundError("Livro não encontrado");
-    return res.send(book);
+    return book;
   };
 
   const updateBook = async (
