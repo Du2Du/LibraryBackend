@@ -103,6 +103,7 @@ export const UserBO = (fastify: FastifyInstance) => {
     return res.send({ accessToken });
   };
 
+  //CORRIGIR
   const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) throw new NotFoundError("Cookie não existente.");
@@ -131,14 +132,14 @@ export const UserBO = (fastify: FastifyInstance) => {
     req: FastifyRequest<{ Params: { userId: number } }>,
     res: FastifyReply
   ) => {
-    const { userId } = req.params;
+    const userId = Number(req.params.userId);
     const uptadeUserData = updateUserSchema.parse(req.body);
     const { email } = uptadeUserData;
     const currentUser = await me(req, res);
 
     if (currentUser?.id !== userId)
       throw new ForbiddenError("Usuário não permitido.");
-    if (await findUserByEmail(email))
+    if ((await findUserByEmail(email)) && email !== currentUser.email)
       throw new ConflictError("Usuário com email já utilizado.");
     if (!(await findUserById(userId)))
       throw new NotFoundError("Usuário não encontrado.");
@@ -160,9 +161,10 @@ export const UserBO = (fastify: FastifyInstance) => {
     const { userId } = req.params;
     const user = await userDAO.findUnique({
       where: {
-        id: userId,
+        id: Number(userId),
       },
     });
+    if (!user) throw new NotFoundError("Usuário não encontrado");
     return res.send(user);
   };
 

@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { ConflictError } from "http-errors-enhanced";
+import { ConflictError, NotFoundError } from "http-errors-enhanced";
 import { bookDAO } from "../../DAOs";
 import { createBookSchema } from "../../DTOs";
 import { UserBO } from "../UserBO";
@@ -45,8 +45,55 @@ export const BookBO = (fastify: FastifyInstance) => {
     return res.send(allBooks);
   };
 
+  const getById = async (
+    req: FastifyRequest<{ Params: { bookId: number } }>,
+    res: FastifyReply
+  ) => {
+    const { bookId } = req.params;
+
+    const book = await bookDAO.findUnique({
+      where: {
+        id: Number(bookId),
+      },
+    });
+    if (!book) throw new NotFoundError("Livro não encontrado");
+    return res.send(book);
+  };
+
+  const updateBook = async (
+    req: FastifyRequest<{ Params: { bookId: number } }>,
+    res: FastifyReply
+  ) => {
+    const bookId = Number(req.params.bookId);
+    const updateBook = createBookSchema.parse(req.body);
+    const newUpdatedBook = await bookDAO.update({
+      data: updateBook,
+      where: {
+        id: bookId,
+      },
+    });
+
+    return res.send(newUpdatedBook);
+  };
+
+  const deleteBook = async (
+    req: FastifyRequest<{ Params: { bookId: number } }>,
+    res: FastifyReply
+  ) => {
+    const bookId = Number(req.params.bookId);
+    await bookDAO.delete({
+      where: {
+        id: bookId,
+      },
+    });
+    return res.send("Livro deletado com sucesso!");
+  };
+
   return {
     createBook,
     getAllBooks,
+    getById,
+    updateBook,
+    deleteBook,
   };
 };
