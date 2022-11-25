@@ -76,10 +76,24 @@ export const BookBO = (fastify: FastifyInstance) => {
     return res.send(newUpdatedBook);
   };
 
+  const deleteBook = async (
+    req: FastifyRequest<{ Params: { bookId: number } }>,
+    res: FastifyReply
+  ) => {
+    const bookId = Number(req.params.bookId);
+    await bookDAO.delete({
+      where: {
+        id: bookId,
+      },
+    });
+    return res.send("Livro deletado com sucesso!");
+  };
+
   return {
     createBook,
     getAllBooks,
     getById,
     updateBook,
+    deleteBook,
   };
 };

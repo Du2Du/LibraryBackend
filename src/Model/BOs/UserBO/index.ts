@@ -103,6 +103,7 @@ export const UserBO = (fastify: FastifyInstance) => {
     return res.send({ accessToken });
   };
 
+  //CORRIGIR
   const refreshToken = async (req: FastifyRequest, res: FastifyReply) => {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) throw new NotFoundError("Cookie não existente.");
