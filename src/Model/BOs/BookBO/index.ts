@@ -4,8 +4,8 @@ import {
   ConflictError,
   NotFoundError,
 } from "http-errors-enhanced";
+import { CreateBook } from "../../../Types";
 import { bookDAO } from "../../DAOs";
-import { createBookSchema } from "../../DTOs";
 import { UserBO } from "../UserBO";
 
 export const BookBO = (fastify: FastifyInstance) => {
@@ -24,11 +24,14 @@ export const BookBO = (fastify: FastifyInstance) => {
     return book;
   };
 
-  const createBook = async (req: FastifyRequest, res: FastifyReply) => {
-    const createBookData = createBookSchema.parse(req.body);
+  const createBook = async (
+    createBookData: CreateBook,
+    userToken: string | object | Buffer,
+    res: FastifyReply
+  ) => {
     const { bookName, price } = createBookData;
     if (price < 0) throw new BadRequestError("Insira um preço válido!");
-    const currentUser = await me(req, res);
+    const currentUser = await me(userToken);
 
     if (await findBookFromNameWithSallerId(bookName, currentUser.id))
       throw new ConflictError(
@@ -43,18 +46,12 @@ export const BookBO = (fastify: FastifyInstance) => {
     return res.send(createdBook);
   };
 
-  const getAllBooks = async (req: FastifyRequest, res: FastifyReply) => {
+  const getAllBooks = async (res: FastifyReply) => {
     const allBooks = await bookDAO.findMany();
-
     return res.send(allBooks);
   };
 
-  const getById = async (
-    req: FastifyRequest<{ Params: { bookId: number } }>,
-    res: FastifyReply
-  ) => {
-    const { bookId } = req.params;
-
+  const getById = async (bookId: number, res: FastifyReply) => {
     const book = await bookDAO.findUnique({
       where: {
         id: Number(bookId),
@@ -65,26 +62,20 @@ export const BookBO = (fastify: FastifyInstance) => {
   };
 
   const updateBook = async (
-    req: FastifyRequest<{ Params: { bookId: number } }>,
+    bookId: number,
+    updateBook: CreateBook,
     res: FastifyReply
   ) => {
-    const bookId = Number(req.params.bookId);
-    const updateBook = createBookSchema.parse(req.body);
     const newUpdatedBook = await bookDAO.update({
       data: updateBook,
       where: {
         id: bookId,
       },
     });
-
     return res.send(newUpdatedBook);
   };
 
-  const deleteBook = async (
-    req: FastifyRequest<{ Params: { bookId: number } }>,
-    res: FastifyReply
-  ) => {
-    const bookId = Number(req.params.bookId);
+  const deleteBook = async (bookId: number, res: FastifyReply) => {
     await bookDAO.delete({
       where: {
         id: bookId,
