@@ -160,7 +160,7 @@ export const UserBO = (fastify: FastifyInstance) => {
     const { userId } = req.params;
     const user = await userDAO.findUnique({
       where: {
-        id: userId,
+        id: Number(userId),
       },
     });
     return res.send(user);

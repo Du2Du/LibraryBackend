@@ -45,8 +45,23 @@ export const BookBO = (fastify: FastifyInstance) => {
     return res.send(allBooks);
   };
 
+  const getById = async (
+    req: FastifyRequest<{ Params: { bookId: number } }>,
+    res: FastifyReply
+  ) => {
+    const { bookId } = req.params;
+
+    const book = await bookDAO.findUnique({
+      where: {
+        id: Number(bookId),
+      },
+    });
+    return res.send(book);
+  };
+
   return {
     createBook,
     getAllBooks,
+    getById,
   };
 };
