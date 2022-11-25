@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { ConflictError } from "http-errors-enhanced";
+import { ConflictError, NotFoundError } from "http-errors-enhanced";
 import { bookDAO } from "../../DAOs";
 import { createBookSchema } from "../../DTOs";
 import { UserBO } from "../UserBO";
@@ -56,6 +56,7 @@ export const BookBO = (fastify: FastifyInstance) => {
         id: Number(bookId),
       },
     });
+    if (!book) throw new NotFoundError("Livro não encontrado");
     return res.send(book);
   };
 
