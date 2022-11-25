@@ -7,5 +7,6 @@ export const createBookSchema = z.object({
   chapters: z.number(),
   publishingCompanyName: z.string(),
   linguage: z.string(),
+  price: z.number(),
   quantity: z.number(),
 });

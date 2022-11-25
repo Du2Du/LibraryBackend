@@ -1,5 +1,9 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { ConflictError, NotFoundError } from "http-errors-enhanced";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "http-errors-enhanced";
 import { bookDAO } from "../../DAOs";
 import { createBookSchema } from "../../DTOs";
 import { UserBO } from "../UserBO";
@@ -22,14 +26,14 @@ export const BookBO = (fastify: FastifyInstance) => {
 
   const createBook = async (req: FastifyRequest, res: FastifyReply) => {
     const createBookData = createBookSchema.parse(req.body);
-    const { bookName } = createBookData;
+    const { bookName, price } = createBookData;
+    if (price < 0) throw new BadRequestError("Insira um preço válido!");
     const currentUser = await me(req, res);
 
     if (await findBookFromNameWithSallerId(bookName, currentUser.id))
       throw new ConflictError(
         "Livro já cadastrado, a melhor opção seria aumentar a quantidade."
       );
-
     const createdBook = await bookDAO.create({
       data: {
         ...createBookData,
