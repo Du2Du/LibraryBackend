@@ -29,9 +29,21 @@ const app = async () => {
   });
 
   fastify.addHook("onRequest", async (req, res) => {
-    if (req.url !== "/user/login" && req.url !== "/user/")
+    if (
+      req.url !== "/user/login" &&
+      req.url !== "/user/" &&
+      req.url !== "/user/refresh-token"
+    )
       return await authenticate(req, res);
   });
+  fastify.register(fastifyCookie, {
+    parseOptions: {
+      httpOnly: true,
+      secure: true,
+    },
+    secret: process.env.TOKEN_SECRET,
+    hook: "preHandler",
+  } as FastifyCookieOptions);
 
   fastify.listen({ port: 8099 });
 };
