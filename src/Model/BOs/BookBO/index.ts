@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyReply } from "fastify";
 import {
   BadRequestError,
   ConflictError,
@@ -26,8 +26,7 @@ export const BookBO = (fastify: FastifyInstance) => {
 
   const createBook = async (
     createBookData: CreateBook,
-    userToken: UserToken,
-    res: FastifyReply
+    userToken: UserToken
   ) => {
     const { bookName, price } = createBookData;
     if (price < 0) throw new BadRequestError("Insira um preço válido!");
@@ -43,36 +42,32 @@ export const BookBO = (fastify: FastifyInstance) => {
         sallerId: currentUser.id,
       },
     });
-    return res.send(createdBook);
+    return { createdBook };
   };
 
-  const getAllBooks = async (res: FastifyReply) => {
+  const getAllBooks = async () => {
     const allBooks = await bookDAO.findMany();
     return allBooks;
   };
 
-  const getById = async (bookId: number, res: FastifyReply) => {
+  const getById = async (bookId: number) => {
     const book = await bookDAO.findUnique({
       where: {
         id: Number(bookId),
       },
     });
     if (!book) throw new NotFoundError("Livro não encontrado");
-    return book;
+    return { book };
   };
 
-  const updateBook = async (
-    bookId: number,
-    updateBook: CreateBook,
-    res: FastifyReply
-  ) => {
+  const updateBook = async (bookId: number, updateBook: CreateBook) => {
     const newUpdatedBook = await bookDAO.update({
       data: updateBook,
       where: {
         id: bookId,
       },
     });
-    return res.send(newUpdatedBook);
+    return { newUpdatedBook };
   };
 
   const deleteBook = async (bookId: number, res: FastifyReply) => {

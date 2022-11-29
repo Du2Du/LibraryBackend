@@ -10,17 +10,17 @@ export const BookController = async (fastify: FastifyInstance) => {
 
   fastify.post("/", (req, res) => {
     const createBookData = createBookSchema.parse(req.body);
-    createBook(createBookData, req.user, res);
+    return createBook(createBookData, req.user);
   });
 
   fastify.get("/", (req, res) => {
-    getAllBooks(res);
+    return getAllBooks();
   });
 
   fastify.get(
     "/:bookId",
     (req: FastifyRequest<{ Params: { bookId: number } }>, res) => {
-      getById(Number(req.params.bookId), res);
+      return getById(Number(req.params.bookId));
     }
   );
 
@@ -28,7 +28,7 @@ export const BookController = async (fastify: FastifyInstance) => {
     "/:bookId",
     (req: FastifyRequest<{ Params: { bookId: number } }>, res) => {
       const updateBookData = createBookSchema.parse(req.body);
-      updateBook(Number(req.params.bookId), updateBookData, res);
+      return updateBook(Number(req.params.bookId), updateBookData);
     }
   );
 
@@ -36,12 +36,12 @@ export const BookController = async (fastify: FastifyInstance) => {
     "/:bookId",
     (req: FastifyRequest<{ Params: { bookId: number } }>, res) => {
       const bookId = Number(req.params.bookId);
-      deleteBook(bookId, res);
+      return deleteBook(bookId, res);
     }
   );
 
   fastify.post("/rating", (req, res) => {
     const ratingData = createRatingSchema.parse(req.body);
-    createRating(ratingData, req.user, res);
+    return createRating(ratingData, req.user, res);
   });
 };
