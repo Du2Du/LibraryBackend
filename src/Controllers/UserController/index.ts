@@ -12,21 +12,21 @@ export const UserControler = async (fastify: FastifyInstance) => {
 
   fastify.post("/", (req) => {
     const userData = createUserSchema.parse(req.body);
-    createUser(userData);
+    return createUser(userData);
   });
 
   fastify.post("/login", (req, res) => {
     const userData = loginUserSchema.parse(req.body);
-    userLogin(userData, res);
+    return userLogin(userData, res);
   });
 
   fastify.get("/me", (req) => {
-    me(req.user);
+    return me(req.user);
   });
 
   fastify.get("/refresh-token", (req, res) => {
     const refreshTokenString = req.cookies.refreshToken;
-    refreshToken(res, refreshTokenString);
+    return refreshToken(refreshTokenString);
   });
 
   fastify.put(
@@ -34,7 +34,7 @@ export const UserControler = async (fastify: FastifyInstance) => {
     (req: FastifyRequest<{ Params: { userId: number } }>, res) => {
       const updateUserData = updateUserSchema.parse(req.body);
       const userId = Number(req.params.userId);
-      updateUser(req.user, userId, updateUserData, res);
+      return updateUser(req.user, userId, updateUserData);
     }
   );
 
@@ -42,7 +42,7 @@ export const UserControler = async (fastify: FastifyInstance) => {
     "/:userId",
     (req: FastifyRequest<{ Params: { userId: number } }>, res) => {
       const userId = Number(req.params.userId);
-      getById(userId, res);
+      return getById(userId);
     }
   );
 };

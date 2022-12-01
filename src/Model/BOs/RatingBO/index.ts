@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply } from "fastify";
 import { ForbiddenError, NotFoundError } from "http-errors-enhanced";
 import { CreateRating, Rating, UserToken } from "../../../Types";
-import { ratingDAO } from "../../DAOs";
+import { bookDAO, ratingDAO } from "../../DAOs";
 import { BookBO } from "../BookBO";
 import { UserBO } from "../UserBO";
 
@@ -20,9 +20,14 @@ export const RatingBO = (fastify: FastifyInstance) => {
       throw new ForbiddenError(
         "Você não pode criar uma avaliação com outro usuário!"
       );
-    const book = await getById(bookId, res);
-    if (!book) throw new NotFoundError("Livro não encontrado");
+    const book = await getById(bookId);
     const rating = await ratingDAO.create({ data: ratingData });
+    // bookDAO.update({
+    //   where: book,
+    //   data: {
+    //     ra: rating.,
+    //   },
+    // });
     return res.send(rating);
   };
 
@@ -37,8 +42,7 @@ export const RatingBO = (fastify: FastifyInstance) => {
       throw new ForbiddenError(
         "Você não pode alterar uma avaliação com outro usuário!"
       );
-    if (!(await getById(bookId, res)))
-      throw new NotFoundError("Livro não encontrado");
+    await getById(bookId);
     const newRating = await ratingDAO.update({
       data: updateData,
       where: {

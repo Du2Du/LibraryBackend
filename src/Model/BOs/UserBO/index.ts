@@ -105,16 +105,16 @@ export const UserBO = (fastify: FastifyInstance) => {
     const accessToken = createToken(id);
     const refreshToken = createToken(id, false);
     setCookie(res, "refreshToken", refreshToken);
-    return res.send({ accessToken });
+    return accessToken;
   };
 
-  const refreshToken = async (res: FastifyReply, refreshToken?: string) => {
+  const refreshToken = async (refreshToken?: string) => {
     if (!refreshToken) throw new NotFoundError("Cookie não existente.");
     const tokenValidate = fastify.jwt.verify(refreshToken);
     if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
     const userId = returnIdFromCookie(fastify.jwt.decode(refreshToken));
     createToken(userId);
-    return res.send("Token atualizado coFm sucesso.");
+    return "Token atualizado coFm sucesso.";
   };
 
   const me = async (userToken: UserToken) => {
@@ -131,8 +131,7 @@ export const UserBO = (fastify: FastifyInstance) => {
   const updateUser = async (
     userToken: UserToken,
     userId: number,
-    updateUserData: UserUpdate,
-    res: FastifyReply
+    updateUserData: UserUpdate
   ) => {
     const { email } = updateUserData;
     const currentUser = await me(userToken);
@@ -151,10 +150,10 @@ export const UserBO = (fastify: FastifyInstance) => {
       data: { ...updateUserData },
     });
     delete user?.password;
-    return res.send(user);
+    return user;
   };
 
-  const getById = async (userId: number, res: FastifyReply) => {
+  const getById = async (userId: number) => {
     const user = await userDAO.findUnique({
       where: {
         id: Number(userId),

@@ -42,7 +42,7 @@ export const BookBO = (fastify: FastifyInstance) => {
         sallerId: currentUser.id,
       },
     });
-    return { createdBook };
+    return createdBook;
   };
 
   const getAllBooks = async () => {
@@ -57,7 +57,7 @@ export const BookBO = (fastify: FastifyInstance) => {
       },
     });
     if (!book) throw new NotFoundError("Livro não encontrado");
-    return { book };
+    return book;
   };
 
   const updateBook = async (bookId: number, updateBook: CreateBook) => {
@@ -67,7 +67,7 @@ export const BookBO = (fastify: FastifyInstance) => {
         id: bookId,
       },
     });
-    return { newUpdatedBook };
+    return newUpdatedBook;
   };
 
   const deleteBook = async (bookId: number, res: FastifyReply) => {

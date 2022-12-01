@@ -3,8 +3,6 @@ import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
 import * as dotenv from "dotenv";
 import Fastify from "fastify";
-import AutoLoad from "@fastify/autoload";
-import path from "path";
 import { BookController, UserControler } from "./Controllers";
 import { authenticate } from "./Utils/authenticate";
 dotenv.config();
@@ -42,7 +40,6 @@ const app = async () => {
       secure: true,
     },
     secret: process.env.TOKEN_SECRET,
-    hook: "preHandler",
   } as FastifyCookieOptions);
 
   fastify.listen({ port: 8099 });
