@@ -6,27 +6,33 @@ import { createBookSchema, createRatingSchema } from "../../Model/DTOs";
 export const BookController = async (fastify: FastifyInstance) => {
   const { createBook, getAllBooks, getById, updateBook, deleteBook } =
     BookBO(fastify);
-  const { createRating } = RatingBO(fastify);
+  const {
+    createRating,
+    getRatingsFromBookId,
+    updateRating,
+    deleteRating,
+    getAllRatings,
+  } = RatingBO(fastify);
 
   fastify.post("/", (req, res) => {
     const createBookData = createBookSchema.parse(req.body);
     return createBook(createBookData, req.user);
   });
 
-  fastify.get("/", (req, res) => {
+  fastify.get("/", () => {
     return getAllBooks();
   });
 
   fastify.get(
     "/:bookId",
-    (req: FastifyRequest<{ Params: { bookId: number } }>, res) => {
+    (req: FastifyRequest<{ Params: { bookId: number } }>) => {
       return getById(Number(req.params.bookId));
     }
   );
 
   fastify.put(
     "/:bookId",
-    (req: FastifyRequest<{ Params: { bookId: number } }>, res) => {
+    (req: FastifyRequest<{ Params: { bookId: number } }>) => {
       const updateBookData = createBookSchema.parse(req.body);
       return updateBook(Number(req.params.bookId), updateBookData);
     }
@@ -42,6 +48,26 @@ export const BookController = async (fastify: FastifyInstance) => {
 
   fastify.post("/rating", (req, res) => {
     const ratingData = createRatingSchema.parse(req.body);
-    return createRating(ratingData, req.user, res);
+    return createRating(ratingData, req.user);
   });
+
+  fastify.get(
+    "/ratings/:bookId",
+    (req: FastifyRequest<{ Params: { bookId: number } }>) => {
+      const bookId = Number(req.params.bookId);
+      return getRatingsFromBookId(bookId);
+    }
+  );
+
+  fastify.get("/ratings", () => {
+    return getAllRatings();
+  });
+
+  fastify.delete(
+    "/rating/:ratingId",
+    (req: FastifyRequest<{ Params: { ratingId: number } }>) => {
+      const ratingId = Number(req.params.ratingId);
+      return deleteRating(ratingId, req.user);
+    }
+  );
 };

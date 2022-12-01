@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyReply } from "fastify";
 import { ForbiddenError, NotFoundError } from "http-errors-enhanced";
 import { CreateRating, Rating, UserToken } from "../../../Types";
-import { bookDAO, ratingDAO } from "../../DAOs";
+import { ratingDAO } from "../../DAOs";
 import { BookBO } from "../BookBO";
 import { UserBO } from "../UserBO";
 
@@ -11,8 +11,7 @@ export const RatingBO = (fastify: FastifyInstance) => {
 
   const createRating = async (
     ratingData: CreateRating,
-    userToken: UserToken,
-    res: FastifyReply
+    userToken: UserToken
   ) => {
     const { bookId, userRatingId } = ratingData;
     const currentUser = await me(userToken);
@@ -20,15 +19,42 @@ export const RatingBO = (fastify: FastifyInstance) => {
       throw new ForbiddenError(
         "Você não pode criar uma avaliação com outro usuário!"
       );
-    const book = await getById(bookId);
+    await getById(bookId);
     const rating = await ratingDAO.create({ data: ratingData });
-    // bookDAO.update({
-    //   where: book,
-    //   data: {
-    //     ra: rating.,
-    //   },
-    // });
-    return res.send(rating);
+    return rating;
+  };
+
+  const getRatingsFromBookId = async (bookId: number) => {
+    const ratings = await ratingDAO.findMany({
+      where: {
+        bookId,
+      },
+    });
+    return ratings;
+  };
+
+  const getAllRatings = async () => {
+    return ratingDAO.findMany();
+  };
+
+  const deleteRating = async (ratingId: number, userToken: UserToken) => {
+    const currentUser = await me(userToken);
+    const rating = await ratingDAO.findUnique({
+      where: {
+        id: ratingId,
+      },
+    });
+    if (!rating) throw new NotFoundError("Avaliação não encontrada.");
+    const book = await getById(rating.bookId);
+
+    if (
+      rating?.userRatingId !== currentUser.id &&
+      book.sallerId !== currentUser.id
+    )
+      throw new ForbiddenError("Usuário não autorizado!");
+
+    await ratingDAO.delete({ where: { id: rating.id } });
+    return "Avaliação deletada com sucesso!";
   };
 
   const updateRating = async (
@@ -52,5 +78,11 @@ export const RatingBO = (fastify: FastifyInstance) => {
     return res.send(newRating);
   };
 
-  return { createRating };
+  return {
+    createRating,
+    getRatingsFromBookId,
+    updateRating,
+    deleteRating,
+    getAllRatings,
+  };
 };

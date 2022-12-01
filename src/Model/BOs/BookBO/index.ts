@@ -4,7 +4,7 @@ import {
   ConflictError,
   NotFoundError,
 } from "http-errors-enhanced";
-import { CreateBook, UserToken } from "../../../Types";
+import { CreateBook, UpdateBook, UserToken } from "../../../Types";
 import { bookDAO } from "../../DAOs";
 import { UserBO } from "../UserBO";
 
@@ -60,9 +60,9 @@ export const BookBO = (fastify: FastifyInstance) => {
     return book;
   };
 
-  const updateBook = async (bookId: number, updateBook: CreateBook) => {
+  const updateBook = async (bookId: number, updateBook: UpdateBook) => {
     const newUpdatedBook = await bookDAO.update({
-      data: updateBook,
+      data: { ...updateBook, ratings: undefined },
       where: {
         id: bookId,
       },
