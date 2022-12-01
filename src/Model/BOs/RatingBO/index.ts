@@ -59,11 +59,18 @@ export const RatingBO = (fastify: FastifyInstance) => {
   };
 
   const updateRating = async (
+    ratingId: number,
     updateData: Rating,
-    userToken: UserToken,
-    res: FastifyReply
+    userToken: UserToken
   ) => {
-    const { bookId, userRatingId, id } = updateData;
+    const { bookId, userRatingId } = updateData;
+    const updatedRatingDate = new Date(updateData.updatedAt);
+    const currentDate = new Date();
+    if (
+      Math.abs(updatedRatingDate.getTime() - currentDate.getTime()) / 3600000 >
+      5
+    )
+      throw new ForbiddenError("Tempo de atualizar avaliação expirado.");
     const currentUser = await me(userToken);
     if (currentUser.id !== userRatingId)
       throw new ForbiddenError(
@@ -73,10 +80,10 @@ export const RatingBO = (fastify: FastifyInstance) => {
     const newRating = await ratingDAO.update({
       data: updateData,
       where: {
-        id,
+        id: ratingId,
       },
     });
-    return res.send(newRating);
+    return newRating;
   };
 
   return {

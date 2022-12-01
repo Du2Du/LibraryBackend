@@ -1,7 +1,11 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
 import { RatingBO } from "../../Model/BOs";
 import { BookBO } from "../../Model/BOs/BookBO";
-import { createBookSchema, createRatingSchema } from "../../Model/DTOs";
+import {
+  createBookSchema,
+  createRatingSchema,
+  updateRatingSchema,
+} from "../../Model/DTOs";
 
 export const BookController = async (fastify: FastifyInstance) => {
   const { createBook, getAllBooks, getById, updateBook, deleteBook } =
@@ -56,6 +60,15 @@ export const BookController = async (fastify: FastifyInstance) => {
     (req: FastifyRequest<{ Params: { bookId: number } }>) => {
       const bookId = Number(req.params.bookId);
       return getRatingsFromBookId(bookId);
+    }
+  );
+
+  fastify.put(
+    "/rating/:ratingId",
+    (req: FastifyRequest<{ Params: { ratingId: number } }>) => {
+      const ratingId = Number(req.params.ratingId);
+      const ratingData = updateRatingSchema.parse(req.body);
+      return updateRating(ratingId, ratingData, req.user);
     }
   );
 

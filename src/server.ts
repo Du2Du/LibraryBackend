@@ -40,6 +40,7 @@ const app = async () => {
       secure: true,
     },
     secret: process.env.TOKEN_SECRET,
+    hook: "preHandler",
   } as FastifyCookieOptions);
 
   fastify.listen({ port: 8099 });

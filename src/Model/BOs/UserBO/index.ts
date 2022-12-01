@@ -114,8 +114,8 @@ export const UserBO = (fastify: FastifyInstance) => {
     const tokenValidate = fastify.jwt.verify(refreshToken);
     if (!tokenValidate) throw new UnauthorizedError("Token inválido.");
     const userId = returnIdFromCookie(fastify.jwt.decode(refreshToken));
-    createToken(userId);
-    return "Token atualizado coFm sucesso.";
+    const newRefreshToken = createToken(userId);
+    return newRefreshToken;
   };
 
   const me = async (userToken: UserToken) => {
