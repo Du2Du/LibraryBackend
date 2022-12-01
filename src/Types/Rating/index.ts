@@ -1,7 +1,15 @@
-export interface Rating {
+export interface UpdateRating {
   bookId: number;
   id: number;
   userRatingId: number;
   description: string;
 }
-export interface CreateRating extends Omit<Rating, "id"> {}
+export interface Rating {
+  id: number;
+  description: string;
+  userRatingId: number;
+  createdAt: string;
+  updatedAt: string;
+  bookId: number;
+}
+export interface CreateRating extends Omit<UpdateRating, "id"> {}

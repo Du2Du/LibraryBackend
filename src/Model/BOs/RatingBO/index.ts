@@ -1,6 +1,6 @@
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance } from "fastify";
 import { ForbiddenError, NotFoundError } from "http-errors-enhanced";
-import { CreateRating, Rating, UserToken } from "../../../Types";
+import { CreateRating, UpdateRating, UserToken } from "../../../Types";
 import { ratingDAO } from "../../DAOs";
 import { BookBO } from "../BookBO";
 import { UserBO } from "../UserBO";
@@ -60,17 +60,10 @@ export const RatingBO = (fastify: FastifyInstance) => {
 
   const updateRating = async (
     ratingId: number,
-    updateData: Rating,
+    updateData: UpdateRating,
     userToken: UserToken
   ) => {
     const { bookId, userRatingId } = updateData;
-    const updatedRatingDate = new Date(updateData.updatedAt);
-    const currentDate = new Date();
-    if (
-      Math.abs(updatedRatingDate.getTime() - currentDate.getTime()) / 3600000 >
-      5
-    )
-      throw new ForbiddenError("Tempo de atualizar avaliação expirado.");
     const currentUser = await me(userToken);
     if (currentUser.id !== userRatingId)
       throw new ForbiddenError(

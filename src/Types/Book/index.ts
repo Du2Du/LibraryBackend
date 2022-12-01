@@ -1,3 +1,5 @@
+import { Rating } from "../Rating";
+
 export interface Book {
   id: number;
   bookName: string;
@@ -24,14 +26,6 @@ export interface CreateBook {
   quantity: number;
 }
 
-export interface Rating {
-  id: number;
-  description: string;
-  userRatingId: number;
-  createdAt: string;
-  updatedAt: string;
-  bookId: number;
-}
 export interface UpdateBook {
   bookName: string;
   authorName: string;

@@ -6,6 +6,7 @@ import {
   createRatingSchema,
   updateRatingSchema,
 } from "../../Model/DTOs";
+import { Rating } from "../../Types";
 
 export const BookController = async (fastify: FastifyInstance) => {
   const { createBook, getAllBooks, getById, updateBook, deleteBook } =
