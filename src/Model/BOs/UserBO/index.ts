@@ -91,6 +91,7 @@ export const UserBO = (fastify: FastifyInstance) => {
     const user: UserDTO = await userDAO.create({
       data: { ...userData, password: newPassword },
     });
+    delete user.password;
     return user;
   };
 

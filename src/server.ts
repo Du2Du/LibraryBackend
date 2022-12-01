@@ -29,7 +29,7 @@ const app = async () => {
   fastify.addHook("onRequest", async (req, res) => {
     if (
       req.url !== "/user/login" &&
-      req.url !== "/user/" &&
+      req.url !== "/user" &&
       req.url !== "/user/refresh-token"
     )
       return await authenticate(req, res);
