@@ -25,6 +25,7 @@ export const RatingBO = (fastify: FastifyInstance) => {
   };
 
   const getRatingsFromBookId = async (bookId: number) => {
+    await getById(bookId);
     const ratings = await ratingDAO.findMany({
       where: {
         bookId,
