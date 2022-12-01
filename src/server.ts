@@ -36,6 +36,7 @@ const app = async () => {
     )
       return await authenticate(req, res);
   });
+
   fastify.register(fastifyCookie, {
     parseOptions: {
       httpOnly: true,

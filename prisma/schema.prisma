@@ -15,13 +15,14 @@ datasource db {
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  name     String
-  cpf      String   @unique
-  email    String   @unique
-  password String
-  books    Book[]
-  ratings  Rating[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  cpf         String        @unique
+  email       String        @unique
+  password    String
+  permissions Permissions[]
+  books       Book[]
+  ratings     Rating[]
 }
 
 model Rating {
@@ -51,4 +52,19 @@ model Book {
   sallerId              Int
   saller                User     @relation(fields: [sallerId], references: [id])
   ratings               Rating[]
+}
+
+model Permissions {
+  id              Int    @id @default(autoincrement())
+  permissionId    String
+  permissionLabel String
+  User            User?  @relation(fields: [userId], references: [id])
+  userId          Int?
+}
+
+model Log {
+  id     Int      @id @default(autoincrement())
+  route  String
+  time   DateTime @default(now())
+  userId Int
 }
