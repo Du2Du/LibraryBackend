@@ -1,9 +1,12 @@
+import { Permission } from "../Permission";
+
 export interface UserProps {
   id: number;
   name: string;
   email: string;
   cpf: string;
   password: string;
+  permissions: Array<Permission>;
 }
 
 export interface CreateUserProps extends Omit<UserProps, "id"> {}
