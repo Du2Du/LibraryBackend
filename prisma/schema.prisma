@@ -25,12 +25,13 @@ model User {
 }
 
 model Rating {
-  id           Int    @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   description  String
   userRatingId Int
   bookId       Int
-  book         Book   @relation(fields: [bookId], references: [id])
-  userRating   User   @relation(fields: [userRatingId], references: [id])
+  book         Book     @relation(fields: [bookId], references: [id])
+  userRating   User     @relation(fields: [userRatingId], references: [id])
+  createdAt    DateTime @default(now())
 }
 
 model Book {
