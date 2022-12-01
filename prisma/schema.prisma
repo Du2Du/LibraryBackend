@@ -31,6 +31,7 @@ model Rating {
   bookId       Int
   book         Book     @relation(fields: [bookId], references: [id])
   userRating   User     @relation(fields: [userRatingId], references: [id])
+  stars        Float
   createdAt    DateTime @default(now())
   updatedAt    DateTime @default(now()) @updatedAt
 }
@@ -42,6 +43,7 @@ model Book {
   pages                 Int
   chapters              Int
   publishingCompanyName String
+  starsAverage          Float
   linguage              String
   imgUrl                String
   quantity              Int

@@ -3,11 +3,13 @@ export interface UpdateRating {
   id: number;
   userRatingId: number;
   description: string;
+  stars: number;
 }
 export interface Rating {
   id: number;
   description: string;
   userRatingId: number;
+  stars: number;
   createdAt: string;
   updatedAt: string;
   bookId: number;

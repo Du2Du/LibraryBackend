@@ -8,6 +8,7 @@ export interface Book {
   chapters: number;
   publishingCompanyName: string;
   linguage: string;
+  starsAverage: number;
   quantity: number;
   imgUrl: string;
   price: number;
