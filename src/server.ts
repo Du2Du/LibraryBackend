@@ -3,8 +3,6 @@ import fastifyCors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
 import * as dotenv from "dotenv";
 import Fastify from "fastify";
-import AutoLoad from "@fastify/autoload";
-import path from "path";
 import { BookController, UserControler } from "./Controllers";
 import { authenticate } from "./Utils/authenticate";
 dotenv.config();
@@ -31,7 +29,7 @@ const app = async () => {
   fastify.addHook("onRequest", async (req, res) => {
     if (
       req.url !== "/user/login" &&
-      req.url !== "/user/" &&
+      req.url !== "/user" &&
       req.url !== "/user/refresh-token"
     )
       return await authenticate(req, res);

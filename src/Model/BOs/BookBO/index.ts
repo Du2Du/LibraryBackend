@@ -1,11 +1,11 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyReply } from "fastify";
 import {
   BadRequestError,
   ConflictError,
   NotFoundError,
 } from "http-errors-enhanced";
+import { CreateBook, UpdateBook, UserToken } from "../../../Types";
 import { bookDAO } from "../../DAOs";
-import { createBookSchema } from "../../DTOs";
 import { UserBO } from "../UserBO";
 
 export const BookBO = (fastify: FastifyInstance) => {
@@ -24,73 +24,58 @@ export const BookBO = (fastify: FastifyInstance) => {
     return book;
   };
 
-  const createBook = async (req: FastifyRequest, res: FastifyReply) => {
-    const createBookData = createBookSchema.parse(req.body);
+  const createBook = async (
+    createBookData: CreateBook,
+    userToken: UserToken
+  ) => {
     const { bookName, price } = createBookData;
     if (price < 0) throw new BadRequestError("Insira um preço válido!");
-    const currentUser = await me(req, res);
+    const currentUser = await me(userToken);
 
     if (await findBookFromNameWithSallerId(bookName, currentUser.id))
-      throw new ConflictError(
-        "Livro já cadastrado, a melhor opção seria aumentar a quantidade."
-      );
+      throw new ConflictError("Livro já cadastrado.");
     const createdBook = await bookDAO.create({
       data: {
         ...createBookData,
         sallerId: currentUser.id,
+        starsAverage: 0,
       },
     });
-    return res.send(createdBook);
+    return createdBook;
   };
 
-  const getAllBooks = async (req: FastifyRequest, res: FastifyReply) => {
+  const getAllBooks = async () => {
     const allBooks = await bookDAO.findMany();
-
-    return res.send(allBooks);
+    return allBooks;
   };
 
-  const getById = async (
-    req: FastifyRequest<{ Params: { bookId: number } }>,
-    res: FastifyReply
-  ) => {
-    const { bookId } = req.params;
-
+  const getById = async (bookId: number) => {
     const book = await bookDAO.findUnique({
       where: {
         id: Number(bookId),
       },
     });
     if (!book) throw new NotFoundError("Livro não encontrado");
-    return res.send(book);
+    return book;
   };
 
-  const updateBook = async (
-    req: FastifyRequest<{ Params: { bookId: number } }>,
-    res: FastifyReply
-  ) => {
-    const bookId = Number(req.params.bookId);
-    const updateBook = createBookSchema.parse(req.body);
+  const updateBook = async (bookId: number, updateBook: UpdateBook) => {
     const newUpdatedBook = await bookDAO.update({
-      data: updateBook,
+      data: { ...updateBook, ratings: undefined },
       where: {
         id: bookId,
       },
     });
-
-    return res.send(newUpdatedBook);
+    return newUpdatedBook;
   };
 
-  const deleteBook = async (
-    req: FastifyRequest<{ Params: { bookId: number } }>,
-    res: FastifyReply
-  ) => {
-    const bookId = Number(req.params.bookId);
+  const deleteBook = async (bookId: number) => {
     await bookDAO.delete({
       where: {
         id: bookId,
       },
     });
-    return res.send("Livro deletado com sucesso!");
+    return "Livro deletado com sucesso!";
   };
 
   return {
