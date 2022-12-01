@@ -47,7 +47,7 @@ export const BookController = async (fastify: FastifyInstance) => {
     "/:bookId",
     (req: FastifyRequest<{ Params: { bookId: number } }>, res) => {
       const bookId = Number(req.params.bookId);
-      return deleteBook(bookId, res);
+      return deleteBook(bookId);
     }
   );
 

@@ -33,13 +33,12 @@ export const BookBO = (fastify: FastifyInstance) => {
     const currentUser = await me(userToken);
 
     if (await findBookFromNameWithSallerId(bookName, currentUser.id))
-      throw new ConflictError(
-        "Livro já cadastrado, a melhor opção seria aumentar a quantidade."
-      );
+      throw new ConflictError("Livro já cadastrado.");
     const createdBook = await bookDAO.create({
       data: {
         ...createBookData,
         sallerId: currentUser.id,
+        starsAverage: 0,
       },
     });
     return createdBook;
@@ -70,13 +69,13 @@ export const BookBO = (fastify: FastifyInstance) => {
     return newUpdatedBook;
   };
 
-  const deleteBook = async (bookId: number, res: FastifyReply) => {
+  const deleteBook = async (bookId: number) => {
     await bookDAO.delete({
       where: {
         id: bookId,
       },
     });
-    return res.send("Livro deletado com sucesso!");
+    return "Livro deletado com sucesso!";
   };
 
   return {

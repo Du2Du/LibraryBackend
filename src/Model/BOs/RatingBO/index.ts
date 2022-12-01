@@ -1,5 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { ForbiddenError, NotFoundError } from "http-errors-enhanced";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "http-errors-enhanced";
 import { CreateRating, UpdateRating, UserToken } from "../../../Types";
 import { ratingDAO } from "../../DAOs";
 import { BookBO } from "../BookBO";
@@ -7,7 +11,19 @@ import { UserBO } from "../UserBO";
 
 export const RatingBO = (fastify: FastifyInstance) => {
   const { me } = UserBO(fastify);
-  const { getById } = BookBO(fastify);
+  const { getById, updateBook } = BookBO(fastify);
+
+  const updateStarsAverageBook = async (bookId: number, newStars: number) => {
+    const book = await getById(bookId);
+    const currentStarsAverage = book.starsAverage;
+    const starsCount = await ratingDAO.count({
+      where: {
+        bookId,
+      },
+    });
+    const newStarsAverage = (currentStarsAverage + newStars) / starsCount;
+    await updateBook(bookId, { ...book, starsAverage: newStarsAverage });
+  };
 
   const createRating = async (
     ratingData: CreateRating,
@@ -21,6 +37,7 @@ export const RatingBO = (fastify: FastifyInstance) => {
       );
     await getById(bookId);
     const rating = await ratingDAO.create({ data: ratingData });
+    await updateStarsAverageBook(bookId, ratingData.stars);
     return rating;
   };
 
@@ -58,6 +75,16 @@ export const RatingBO = (fastify: FastifyInstance) => {
     return "Avaliação deletada com sucesso!";
   };
 
+  const getRatingById = async (ratingId: number) => {
+    const rating = await ratingDAO.findUnique({
+      where: {
+        id: Number(ratingId),
+      },
+    });
+    if (!rating) throw new NotFoundError("Avaliação não encontrada");
+    return rating;
+  };
+
   const updateRating = async (
     ratingId: number,
     updateData: UpdateRating,
@@ -70,6 +97,9 @@ export const RatingBO = (fastify: FastifyInstance) => {
         "Você não pode alterar uma avaliação com outro usuário!"
       );
     await getById(bookId);
+    if (updateData.stars !== (await getRatingById(ratingId)).stars)
+      throw new BadRequestError("Você não pode alterar as estrelas.");
+
     const newRating = await ratingDAO.update({
       data: updateData,
       where: {
