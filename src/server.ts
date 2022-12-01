@@ -5,11 +5,13 @@ import * as dotenv from "dotenv";
 import Fastify from "fastify";
 import { BookController, UserControler } from "./Controllers";
 import { authenticate } from "./Utils/authenticate";
+import qs from "qs";
 dotenv.config();
 
 const app = async () => {
   const fastify = Fastify({
     logger: true,
+    querystringParser: (str) => qs.parse(str),
   });
 
   fastify.register(fastifyJwt, {

@@ -32,6 +32,7 @@ export interface UpdateBook {
   authorName: string;
   pages: number;
   imgUrl: string;
+  starsAverage?: number;
   ratings?: Array<Rating>;
   price: number;
   chapters: number;

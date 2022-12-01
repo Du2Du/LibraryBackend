@@ -44,8 +44,9 @@ export const BookBO = (fastify: FastifyInstance) => {
     return createdBook;
   };
 
-  const getAllBooks = async () => {
-    const allBooks = await bookDAO.findMany();
+  const getAllBooks = async (page = 0, perPage = 10) => {
+    const skipBooks = page * 3;
+    const allBooks = await bookDAO.findMany({ skip: skipBooks, take: perPage });
     return allBooks;
   };
 

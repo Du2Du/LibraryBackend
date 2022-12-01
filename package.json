@@ -21,6 +21,7 @@
     "http-errors-enhanced": "^1.0.12",
     "jsonwebtoken": "^8.5.1",
     "pg": "^8.8.0",
+    "qs": "^6.11.0",
     "zod": "^3.19.1"
   },
   "devDependencies": {
@@ -31,6 +32,7 @@
     "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^18.11.9",
     "@types/pg": "^8.6.5",
+    "@types/qs": "^6.9.7",
     "prisma": "^4.6.1",
     "prisma-erd-generator": "^1.2.3",
     "tsx": "^3.12.1",

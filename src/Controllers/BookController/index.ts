@@ -24,9 +24,15 @@ export const BookController = async (fastify: FastifyInstance) => {
     return createBook(createBookData, req.user);
   });
 
-  fastify.get("/", () => {
-    return getAllBooks();
-  });
+  fastify.get(
+    "/",
+    (
+      req: FastifyRequest<{ Querystring: { page: number; per_page: number } }>
+    ) => {
+      const { page, per_page } = req.query;
+      return getAllBooks(Number(page), Number(per_page));
+    }
+  );
 
   fastify.get(
     "/:bookId",
